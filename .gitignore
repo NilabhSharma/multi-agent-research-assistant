@@ -3,5 +3,6 @@ __pycache__/
 *.pyc
 .env
 .langgraph_checkpoints/
+checkpoints.db
 *.log
 .DS_Store

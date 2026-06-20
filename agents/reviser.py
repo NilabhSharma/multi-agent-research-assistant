@@ -70,6 +70,18 @@ async def build_mini_app():
     return mini_graph.compile()
 
 
+def contains_leaked_tool_syntax(text):
+    """
+    Detects when the LLM leaked raw, malformed tool-call syntax directly
+    into its text output instead of properly invoking the tool. This
+    happens occasionally even without a clean exception being raised, so
+    we check for it explicitly rather than just trusting any non-error
+    response.
+    """
+    suspicious_markers = ["<function=", "</function>", "function=web_search"]
+    return any(marker in text for marker in suspicious_markers)
+
+
 def reviser_node(state):
     report = state["final_report"]
     instruction = state["follow_up_instruction"]
@@ -93,7 +105,14 @@ def reviser_node(state):
                         {"role": "user", "content": user_message}
                     ]
                 })
-                return result["messages"][-1].content
+                candidate = result["messages"][-1].content
+
+                if contains_leaked_tool_syntax(candidate):
+                    raise ValueError(
+                        "Response contained leaked/malformed tool-call syntax"
+                    )
+
+                return candidate
             except Exception as e:
                 print(f"    [retry {attempt}/{max_attempts}] failed: {e}")
                 if attempt == max_attempts:

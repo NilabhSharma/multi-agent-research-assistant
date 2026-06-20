@@ -68,6 +68,16 @@ async def build_mini_app():
     return mini_graph.compile()
 
 
+def contains_leaked_tool_syntax(text):
+    """
+    Detects when the LLM leaked raw, malformed tool-call syntax directly
+    into its text output instead of properly invoking the tool. This can
+    happen even without a clean exception being raised.
+    """
+    suspicious_markers = ["<function=", "</function>", "function=web_search"]
+    return any(marker in text for marker in suspicious_markers)
+
+
 def web_searcher_node(state):
     """
     Same job as before: loop over each sub-question, run a ReAct loop, collect
@@ -101,7 +111,14 @@ def web_searcher_node(state):
                             {"role": "user", "content": sub_question}
                         ]
                     })
-                    finding = result["messages"][-1].content
+                    candidate = result["messages"][-1].content
+
+                    if contains_leaked_tool_syntax(candidate):
+                        raise ValueError(
+                            "Response contained leaked/malformed tool-call syntax"
+                        )
+
+                    finding = candidate
                     break  # success, no need to retry
                 except Exception as e:
                     print(f"    [retry {attempt}/{max_attempts}] tool call failed: {e}")
