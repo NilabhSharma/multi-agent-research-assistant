@@ -23,3 +23,7 @@ class ResearchState(TypedDict):
 
     # The supervisor's routing decision: who should act next
     next: str
+
+    # A follow-up instruction from the user, referencing the existing report
+    # (e.g. "expand on the recycling section"). Empty/absent on a fresh topic.
+    follow_up_instruction: str
