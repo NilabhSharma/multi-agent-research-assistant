@@ -21,19 +21,18 @@ mcp = FastMCP("research-tools")
 # and docstring to describe the tool to any connecting client - this is the
 # "standardized, type-safe interface" your project description mentions.
 @mcp.tool()
-def web_search(query: str, max_results: int = 3) -> str:
+def web_search(query: str) -> str:
     """
     Search the web for current information on a given query.
 
     Args:
         query: The search query string.
-        max_results: Maximum number of results to return (default 3).
 
     Returns:
         A formatted string containing titles, URLs, and content snippets
         from the top search results.
     """
-    response = tavily_client.search(query=query, max_results=max_results)
+    response = tavily_client.search(query=query, max_results=3)
 
     formatted_results = []
     for result in response["results"]:
