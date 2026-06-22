@@ -14,8 +14,7 @@ st.set_page_config(page_title="Research Assistant", page_icon="🔍", layout="wi
 if "final_report" not in st.session_state:
     st.session_state.final_report = None
 if "thread_id" not in st.session_state:
-    # A fresh unique id per browser session - using uuid4 means we don't
-    # need to worry about collisions with any past session's thread_id.
+    
     st.session_state.thread_id = str(uuid.uuid4())
 
 
