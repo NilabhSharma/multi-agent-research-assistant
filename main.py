@@ -12,11 +12,6 @@ from agents.supervisor import supervisor_router
 
 
 def route_from_start(state):
-    """
-    Decides where to ENTER the graph. If there's a follow-up instruction
-    present, skip straight to the reviser (don't re-run the whole research
-    pipeline). Otherwise, start fresh at the planner.
-    """
     if state.get("follow_up_instruction"):
         return "reviser"
     return "planner"
@@ -30,8 +25,6 @@ def build_graph(checkpointer):
     graph.add_node("summarizer", summarizer_node)
     graph.add_node("writer", writer_node)
     graph.add_node("reviser", reviser_node)
-
-    # Conditional entry point: planner for new topics, reviser for follow-ups
     graph.add_conditional_edges(
         START,
         route_from_start,
@@ -51,8 +44,6 @@ def build_graph(checkpointer):
     graph.add_conditional_edges("writer", supervisor_router, routing_map)
     graph.add_edge("reviser", END)
 
-    # checkpointer is what gives us memory across turns - every node's
-    # output gets saved here, tied to a thread_id
     return graph.compile(checkpointer=checkpointer)
 
 
@@ -63,16 +54,8 @@ def save_report(report_text):
 
 
 async def main():
-    # AsyncSqliteSaver stores checkpoints in a local file - no external
-    # service, completely free. The .db file is created automatically.
-    # It's an async context manager, so we use "async with" to open it.
     async with AsyncSqliteSaver.from_conn_string("checkpoints.db") as checkpointer:
         app = build_graph(checkpointer)
-
-        # The thread_id ties together every turn of this conversation. As
-        # long as we reuse the same thread_id, the graph has access to
-        # everything that happened before (topic, plan, search results,
-        # summary, report).
         thread_id = "session-1"
         config = {"configurable": {"thread_id": thread_id}}
 
@@ -92,7 +75,6 @@ async def main():
         print(result["final_report"])
         save_report(result["final_report"])
 
-        # Follow-up loop
         while True:
             print(f"\n{'-'*60}")
             follow_up = input(

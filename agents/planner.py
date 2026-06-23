@@ -13,15 +13,12 @@ Respond with ONLY the sub-questions, one per line, no numbering, no extra commen
 
 Topic: {topic}"""
 
-
 def planner_node(state):
     topic = state["topic"]
 
     prompt = PLANNER_PROMPT.format(topic=topic)
     response = llm.invoke(prompt)
 
-    # Split the response into a clean list of sub-questions, removing
-    # any blank lines that might sneak in.
     sub_questions = [
         line.strip() for line in response.content.split("\n") if line.strip()
     ]
@@ -35,8 +32,6 @@ def planner_node(state):
         "next": "web_searcher"
     }
 
-
-# Quick standalone test
 if __name__ == "__main__":
     test_state = {"topic": "The impact of AI agents on software engineering jobs"}
     result = planner_node(test_state)

@@ -46,8 +46,6 @@ def writer_node(state):
         "next": "END"
     }
 
-
-# Quick standalone test
 if __name__ == "__main__":
     test_state = {
         "topic": "The impact of AI agents on software engineering jobs",

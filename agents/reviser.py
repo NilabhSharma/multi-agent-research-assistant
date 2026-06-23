@@ -15,7 +15,6 @@ load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
 MCP_SERVER_URL = "http://127.0.0.1:8000/mcp"
 
-
 class MiniState(TypedDict):
     messages: Annotated[list, add_messages]
 
@@ -71,13 +70,6 @@ async def build_mini_app():
 
 
 def contains_leaked_tool_syntax(text):
-    """
-    Detects when the LLM leaked raw, malformed tool-call syntax directly
-    into its text output instead of properly invoking the tool. This
-    happens occasionally even without a clean exception being raised, so
-    we check for it explicitly rather than just trusting any non-error
-    response.
-    """
     suspicious_markers = ["<function=", "</function>", "function=web_search"]
     return any(marker in text for marker in suspicious_markers)
 
@@ -128,8 +120,6 @@ def reviser_node(state):
         "next": "END"
     }
 
-
-# Quick standalone test
 if __name__ == "__main__":
     test_state = {
         "final_report": (

@@ -16,26 +16,12 @@ groq_api_key = os.getenv("GROQ_API_KEY")
 
 MCP_SERVER_URL = "http://127.0.0.1:8000/mcp"
 
-
 class MiniState(TypedDict):
     messages: Annotated[list, add_messages]
 
-
 llm = ChatGroq(model="llama-3.1-8b-instant", api_key=groq_api_key)
 
-SEARCH_SYSTEM_PROMPT = """You are a research assistant. Answer the following
-sub-question as accurately and concisely as possible. Use the search tool if
-you need current or factual information. Cite the source URLs you used in
-your answer."""
-
-
 async def build_mini_app():
-    """
-    Connects to our MCP server and pulls down its tools, converted into
-    LangChain-compatible tool objects. This is the key MCP integration step -
-    instead of `from langchain_tavily import TavilySearch`, the tool
-    definition now comes dynamically from whatever the MCP server exposes.
-    """
     client = MultiServerMCPClient({
         "research-tools": {
             "url": MCP_SERVER_URL,
@@ -66,25 +52,12 @@ async def build_mini_app():
     mini_graph.add_edge("tools", "agent")
 
     return mini_graph.compile()
-
-
 def contains_leaked_tool_syntax(text):
-    """
-    Detects when the LLM leaked raw, malformed tool-call syntax directly
-    into its text output instead of properly invoking the tool. This can
-    happen even without a clean exception being raised.
-    """
     suspicious_markers = ["<function=", "</function>", "function=web_search"]
     return any(marker in text for marker in suspicious_markers)
 
 
 def web_searcher_node(state):
-    """
-    Same job as before: loop over each sub-question, run a ReAct loop, collect
-    findings. The only difference from the pre-MCP version is that the tools
-    used inside the loop now come from the MCP server instead of being
-    imported directly.
-    """
     plan = state["plan"]
     search_results = []
 
@@ -95,11 +68,6 @@ def web_searcher_node(state):
 
         for i, sub_question in enumerate(plan, start=1):
             print(f"  ({i}/{len(plan)}) {sub_question}")
-
-            # Groq's Llama models occasionally emit a malformed tool call
-            # (garbled function-call syntax) instead of a clean one. This is
-            # a model-level hiccup, not a bug in our code or MCP setup. We
-            # retry a couple of times before giving up on this sub-question.
             max_attempts = 3
             finding = None
 
@@ -139,8 +107,6 @@ def web_searcher_node(state):
         "next": "summarizer"
     }
 
-
-# Quick standalone test
 if __name__ == "__main__":
     test_state = {
         "plan": [
