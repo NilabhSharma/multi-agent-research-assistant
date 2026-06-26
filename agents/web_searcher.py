@@ -16,10 +16,18 @@ groq_api_key = os.getenv("GROQ_API_KEY")
 
 MCP_SERVER_URL = "http://127.0.0.1:8000/mcp"
 
+
 class MiniState(TypedDict):
     messages: Annotated[list, add_messages]
 
+
 llm = ChatGroq(model="llama-3.1-8b-instant", api_key=groq_api_key)
+
+SEARCH_SYSTEM_PROMPT = """You are a research assistant. Answer the following
+sub-question as accurately and concisely as possible. Use the search tool if
+you need current or factual information. Cite the source URLs you used in
+your answer."""
+
 
 async def build_mini_app():
     client = MultiServerMCPClient({
@@ -52,6 +60,8 @@ async def build_mini_app():
     mini_graph.add_edge("tools", "agent")
 
     return mini_graph.compile()
+
+
 def contains_leaked_tool_syntax(text):
     suspicious_markers = ["<function=", "</function>", "function=web_search"]
     return any(marker in text for marker in suspicious_markers)
