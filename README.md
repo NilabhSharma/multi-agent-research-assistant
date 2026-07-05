@@ -100,7 +100,7 @@ research-assistant/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/multi-agent-research-assistant.git
+git clone https://github.com/NilabhSharma/multi-agent-research-assistant.git
 cd multi-agent-research-assistant
 ```
 
