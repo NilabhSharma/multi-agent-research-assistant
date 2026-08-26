@@ -27,4 +27,5 @@ def web_search(query: str) -> str:
     return "\n\n---\n\n".join(formatted_results)
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
+    port = int(os.environ.get("PORT", 8000))
+    mcp.run(transport="streamable-http", host="0.0.0.0", port=port)

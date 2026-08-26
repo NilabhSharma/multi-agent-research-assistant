@@ -13,7 +13,7 @@ from langchain_mcp_adapters.client import MultiServerMCPClient
 load_dotenv()
 
 groq_api_key = os.getenv("GROQ_API_KEY")
-MCP_SERVER_URL = "http://127.0.0.1:8000/mcp"
+MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", "http://127.0.0.1:8000/mcp")
 
 class MiniState(TypedDict):
     messages: Annotated[list, add_messages]
